@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { subDays } from 'date-fns';
-import { Users, UserPlus, UserMinus, DollarSign, RefreshCw } from 'lucide-react';
+import { Users, UserPlus, UserMinus, DollarSign, RefreshCw, Database } from 'lucide-react';
 import { FilterBar } from './FilterBar';
 import { KPICard } from './KPICard';
+import { RawDataModal } from './RawDataModal';
 import {
   SubscriptionsTrendChart,
   NewAndChurnChart,
@@ -17,11 +18,13 @@ import {
   getPlatformBreakdown,
   getPlanBreakdown,
   getAvailableDateRange,
+  getRawData,
 } from '../data/mockData';
 import type { Filters } from '../types';
 
 export function Dashboard() {
   const dateRange = useMemo(() => getAvailableDateRange(), []);
+  const [isRawDataModalOpen, setIsRawDataModalOpen] = useState(false);
 
   const [filters, setFilters] = useState<Filters>({
     startDate: subDays(dateRange.max, 30),
@@ -35,6 +38,7 @@ export function Dashboard() {
   const metrics = useMemo(() => calculateMetrics(filteredData, filters), [filteredData, filters]);
   const platformBreakdown = useMemo(() => getPlatformBreakdown(filteredData), [filteredData]);
   const planBreakdown = useMemo(() => getPlanBreakdown(filteredData), [filteredData]);
+  const rawData = useMemo(() => getRawData(), []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -50,9 +54,18 @@ export function Dashboard() {
                 モバイルアプリの契約状況ダッシュボード
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              リアルタイム更新
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsRawDataModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 rounded-lg transition-colors shadow-sm"
+              >
+                <Database size={16} />
+                生データを表示
+              </button>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                リアルタイム更新
+              </div>
             </div>
           </div>
         </div>
@@ -158,10 +171,17 @@ export function Dashboard() {
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <p className="text-center text-sm text-gray-400">
-            データは分析用のサンプルデータです
+            データは分析用のサンプルデータです（サーバー起動ごとにランダム生成）
           </p>
         </div>
       </footer>
+
+      {/* Raw Data Modal */}
+      <RawDataModal
+        isOpen={isRawDataModalOpen}
+        onClose={() => setIsRawDataModalOpen(false)}
+        data={rawData}
+      />
     </div>
   );
 }

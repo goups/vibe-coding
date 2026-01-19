@@ -1,73 +1,86 @@
-# React + TypeScript + Vite
+# サブスクリプション分析ダッシュボード
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+モバイルアプリのサブスクリプション契約状況を可視化するダッシュボードです。
 
-Currently, two official plugins are available:
+## 機能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### KPI表示
+- **有効サブスク数** - 現在のアクティブな契約数
+- **新規契約** - 選択期間内の新規契約数
+- **解約数** - 選択期間内の解約数
+- **MRR** - 月次経常収益（Monthly Recurring Revenue）
+- **トライアル転換率** - 無料トライアルから有料への転換率
 
-## React Compiler
+### チャート
+- 有効サブスクリプション推移（エリアチャート）
+- 新規契約・解約推移（棒グラフ）
+- MRR推移（エリアチャート）
+- トライアル転換率推移（ラインチャート）
+- プラットフォーム別内訳（円グラフ: iOS/Android）
+- プラン別内訳（円グラフ: 月額/年額）
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### フィルター機能
+- **期間選択** - 日付ピッカー + クイック選択（7日/30日/90日/1年）
+- **OS選択** - すべて / iOS / Android
+- **プラン選択** - すべて / 月額 / 年額
 
-## Expanding the ESLint configuration
+フィルターを変更すると、すべてのKPIとチャートがリアルタイムで連動して更新されます。
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 生データ表示機能
+ヘッダーの「生データを表示」ボタンをクリックすると、モーダルで生データを確認できます。
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- テーブル形式で全データを表示
+- カラムヘッダーをクリックでソート可能
+- ページネーション（50件/ページ）
+- CSV/JSON形式でエクスポート可能
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## ダミーデータについて
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- 約13ヶ月分のデータを自動生成
+- **サーバー起動ごとにランダムなデータが生成されます**
+- 成長トレンド + 季節変動 + キャンペーンスパイクを含むリアルなデータ
+- iOS/Androidの比率、月額/年額プランの比率も考慮
+
+## 技術スタック
+
+- React 19 + TypeScript
+- Vite
+- Tailwind CSS v4
+- Recharts（チャート）
+- date-fns（日付処理）
+- Lucide React（アイコン）
+
+## 起動方法
+
+```bash
+# 依存パッケージのインストール
+npm install
+
+# 開発サーバーの起動
+npm run dev
+
+# ビルド
+npm run build
+
+# プレビュー
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## プロジェクト構成
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── components/
+│   ├── Charts.tsx        # 各種チャートコンポーネント
+│   ├── Dashboard.tsx     # メインダッシュボード
+│   ├── FilterBar.tsx     # フィルターバー
+│   ├── KPICard.tsx       # KPIカード
+│   └── RawDataModal.tsx  # 生データ表示モーダル
+├── data/
+│   └── mockData.ts       # ダミーデータ生成・集計ロジック
+├── types/
+│   └── index.ts          # 型定義
+├── App.tsx
+├── main.tsx
+└── index.css
 ```

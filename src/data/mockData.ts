@@ -1,14 +1,6 @@
 import { addDays, format, subDays } from 'date-fns';
 import type { DailyMetrics, Filters, AggregatedMetrics, ChartDataPoint, PlatformBreakdown, PlanBreakdown } from '../types';
 
-// Seeded random number generator for consistent data
-function seededRandom(seed: number): () => number {
-  return function() {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    return seed / 0x7fffffff;
-  };
-}
-
 // Generate base trend with seasonal patterns
 function generateTrend(dayIndex: number, baseValue: number, growthRate: number): number {
   const trend = baseValue * Math.pow(1 + growthRate / 365, dayIndex);
@@ -18,21 +10,20 @@ function generateTrend(dayIndex: number, baseValue: number, growthRate: number):
 }
 
 // Add random spikes
-function addSpikes(value: number, random: () => number, dayIndex: number): number {
+function addSpikes(value: number, dayIndex: number): number {
   // Campaign spikes (every ~45 days)
-  if (dayIndex % 45 < 3 && random() > 0.5) {
-    return value * (1.3 + random() * 0.4);
+  if (dayIndex % 45 < 3 && Math.random() > 0.5) {
+    return value * (1.3 + Math.random() * 0.4);
   }
   // Random smaller spikes
-  if (random() > 0.92) {
-    return value * (1.15 + random() * 0.2);
+  if (Math.random() > 0.92) {
+    return value * (1.15 + Math.random() * 0.2);
   }
   return value;
 }
 
-// Generate all mock data
+// Generate all mock data (called once on module load, randomized each time)
 function generateMockData(): DailyMetrics[] {
-  const random = seededRandom(42);
   const data: DailyMetrics[] = [];
   const startDate = new Date('2024-01-01');
   const days = 400; // ~13 months of data
@@ -52,19 +43,19 @@ function generateMockData(): DailyMetrics[] {
         // Base active subscriptions with growth
         const baseActive = 8000 * baseMultiplier;
         let activeSubscriptions = generateTrend(dayIndex, baseActive, 0.25);
-        activeSubscriptions = addSpikes(activeSubscriptions, random, dayIndex);
-        activeSubscriptions = Math.round(activeSubscriptions * (0.95 + random() * 0.1));
+        activeSubscriptions = addSpikes(activeSubscriptions, dayIndex);
+        activeSubscriptions = Math.round(activeSubscriptions * (0.95 + Math.random() * 0.1));
 
         // New subscriptions
         const baseNew = 120 * baseMultiplier;
         let newSubscriptions = generateTrend(dayIndex, baseNew, 0.2);
-        newSubscriptions = addSpikes(newSubscriptions, random, dayIndex);
-        newSubscriptions = Math.round(newSubscriptions * (0.8 + random() * 0.4));
+        newSubscriptions = addSpikes(newSubscriptions, dayIndex);
+        newSubscriptions = Math.round(newSubscriptions * (0.8 + Math.random() * 0.4));
 
         // Churns (lower is better, slight downward trend as retention improves)
         const baseChurn = 45 * baseMultiplier;
         let churns = generateTrend(dayIndex, baseChurn, -0.1);
-        churns = Math.round(churns * (0.7 + random() * 0.6));
+        churns = Math.round(churns * (0.7 + Math.random() * 0.6));
         churns = Math.max(0, churns);
 
         // MRR calculation
@@ -76,11 +67,11 @@ function generateMockData(): DailyMetrics[] {
         // Trial conversions
         const baseTrialStarts = 80 * baseMultiplier;
         let trialStarts = generateTrend(dayIndex, baseTrialStarts, 0.15);
-        trialStarts = Math.round(trialStarts * (0.8 + random() * 0.4));
+        trialStarts = Math.round(trialStarts * (0.8 + Math.random() * 0.4));
 
         // Conversion rate varies between 25-45%
         const baseConversionRate = 0.32 + (dayIndex / days) * 0.08; // Improving over time
-        const conversionRate = baseConversionRate * (0.85 + random() * 0.3);
+        const conversionRate = baseConversionRate * (0.85 + Math.random() * 0.3);
         const trialConversions = Math.round(trialStarts * Math.min(0.55, conversionRate));
 
         data.push({
@@ -102,6 +93,11 @@ function generateMockData(): DailyMetrics[] {
 }
 
 const allMockData = generateMockData();
+
+// Export raw data for viewing
+export function getRawData(): DailyMetrics[] {
+  return allMockData;
+}
 
 export function filterData(filters: Filters): DailyMetrics[] {
   return allMockData.filter((item) => {
